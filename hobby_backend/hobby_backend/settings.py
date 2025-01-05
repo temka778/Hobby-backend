@@ -100,4 +100,12 @@ REST_FRAMEWORK = {
     ),
 }
 
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWED_ORIGINS = [
+    "https://xn--e1aybc.xn----btba2a0abz0a2e.xn--p1ai",
+    "http://localhost:3000"
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://api.xn----btba2a0abz0a2e.xn--p1ai",
+    "http://127.0.0.1:8000"
+]
