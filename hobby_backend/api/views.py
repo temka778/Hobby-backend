@@ -1,10 +1,13 @@
+from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .serializers import SignupSerializer
+from .serializers import SignupSerializer, UserSerializer
+from .permissions import IsOwnerOrReadOnly
+from user.models import CustomUser as User
 
 
 class SignupView(APIView):
@@ -16,6 +19,33 @@ class SignupView(APIView):
         if serializer.is_valid():
             user = serializer.save()
             return Response({"message": "Пользователь успешно создан"}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserDetailView(APIView):
+    """ Получение и редактирование данных пользователя """
+    permission_classes = [IsOwnerOrReadOnly]
+
+    def get(self, request, id):
+        """ Получение данных пользователя """
+        try:
+            user = User.objects.get(id=id)
+        except User.DoesNotExist:
+            return Response({"error": "Пользователь не найден"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = UserSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def put(self, request, id):
+        """ Редактирование данных пользователя """
+        if request.user.id != id:
+            return Response({"error": "Вы можете редактировать только свою страницу."}, status=status.HTTP_403_FORBIDDEN)
+
+        user = request.user
+        serializer = UserSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
