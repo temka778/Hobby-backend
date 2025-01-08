@@ -23,30 +23,31 @@ class SignupView(APIView):
 
 
 class UserDetailView(APIView):
-    """ Получение и редактирование данных пользователя """
+    """Получение и редактирование данных пользователя (по id или username)"""
     permission_classes = [IsOwnerOrReadOnly]
 
-    def get(self, request, id):
-        """ Получение данных пользователя """
-        try:
-            user = User.objects.get(id=id)
-        except User.DoesNotExist:
-            return Response({"error": "Пользователь не найден"}, status=status.HTTP_404_NOT_FOUND)
+    def get_object(self, identifier):
+        """Получить объект пользователя по id или username"""
+        lookup_field = "id" if identifier.isdigit() else "username"
+        return get_object_or_404(User, **{lookup_field: identifier})
 
+    def get(self, request, identifier):
+        """Получение данных пользователя"""
+        user = self.get_object(identifier)
         serializer = UserSerializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def put(self, request, id):
-        """ Редактирование данных пользователя """
-        if request.user.id != id:
+    def put(self, request, identifier):
+        """Редактирование данных пользователя"""
+        user = self.get_object(identifier)
+        if request.user != user:
             return Response({"error": "Вы можете редактировать только свою страницу."}, status=status.HTTP_403_FORBIDDEN)
-
-        user = request.user
         serializer = UserSerializer(user, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 class LogoutView(APIView):
