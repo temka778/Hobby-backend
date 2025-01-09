@@ -84,7 +84,9 @@ USE_I18N = True
 
 USE_TZ = True
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'static'
+
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -106,5 +108,5 @@ CORS_ALLOWED_ORIGINS = [
 
 CSRF_TRUSTED_ORIGINS = [
     "https://api.xn----btba2a0abz0a2e.xn--p1ai",
-    "http://127.0.0.1:8000"
+    "http://127.0.0.1:7000"
 ]
