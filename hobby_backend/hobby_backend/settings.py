@@ -1,5 +1,4 @@
 from pathlib import Path
-from datetime import timedelta
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -7,7 +6,7 @@ SECRET_KEY = 'django-insecure-c=&))n1ybh6vxxiw93j#y-+@52)b)r^lcdl6$t=cz4f9mdbkl^
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', 'api.xn----btba2a0abz0a2e.xn--p1ai']
+ALLOWED_HOSTS = ['127.0.0.1', 'api.xn----btba2a0abz0a2e.xn--p1ai', '31.129.97.227']
 
 INSTALLED_APPS = [
     'api.apps.ApiConfig',
@@ -102,7 +101,7 @@ REST_FRAMEWORK = {
 
 CORS_ALLOWED_ORIGINS = [
     "https://xn--e1aybc.xn----btba2a0abz0a2e.xn--p1ai",
-    "http://localhost:3000"
+    "http://localhost:5173"
 ]
 
 CSRF_TRUSTED_ORIGINS = [
