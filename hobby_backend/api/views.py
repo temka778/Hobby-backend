@@ -1,3 +1,4 @@
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -5,14 +6,19 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from .permissions import IsNotAuthenticated
 from .serializers import SignupSerializer, UserSerializer
-from .permissions import IsOwnerOrReadOnly
 from user.models import CustomUser as User
+
+
+def home(request):
+    """Домашняя страница"""
+    return HttpResponse("Здесь будет документация по API")
 
 
 class SignupView(APIView):
     """ Регистрация пользователя """
-    permission_classes = [AllowAny]
+    permission_classes = [IsNotAuthenticated]
 
     def post(self, request):
         serializer = SignupSerializer(data=request.data)
@@ -22,36 +28,39 @@ class SignupView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class UserDetailView(APIView):
-    """Получение и редактирование данных пользователя (по id или username)"""
-    permission_classes = [IsOwnerOrReadOnly]
-
-    def get_object(self, identifier):
-        """Получить объект пользователя по id или username"""
-        lookup_field = "id" if identifier.isdigit() else "username"
-        return get_object_or_404(User, **{lookup_field: identifier})
-
-    def get(self, request, identifier):
-        """Получение данных пользователя"""
-        user = self.get_object(identifier)
-        serializer = UserSerializer(user)
+class CurrentUserView(APIView):
+    """Запрос, просмотр и изменение текущего пользователя"""
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        serializer = UserSerializer(request.user)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def put(self, request, identifier):
-        """Редактирование данных пользователя"""
-        user = self.get_object(identifier)
-        if request.user != user:
-            return Response({"error": "Вы можете редактировать только свою страницу."}, status=status.HTTP_403_FORBIDDEN)
-        serializer = UserSerializer(user, data=request.data, partial=True)
+    def put(self, request):
+        serializer = UserSerializer(request.user, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+class UserDetailView(APIView):
+    """Запрос и просмотр пользователя по ID или username"""
+    permission_classes = [AllowAny]
+    def get(self, request, id=None, username=None):
+        if id:
+            user = get_object_or_404(User, id=id)
+        elif username:
+            user = get_object_or_404(User, username=username)
+        else:
+            return Response({"error": "ID или username должны быть указаны"}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = UserSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
 
 class LogoutView(APIView):
     """ Выход пользователя из учётки """
+    permission_classes = [IsAuthenticated]
     def post(self, request):
         refresh_token = request.data.get("refresh")
         if not refresh_token:
