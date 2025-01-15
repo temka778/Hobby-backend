@@ -2,11 +2,11 @@ from django.contrib.auth.models import BaseUserManager
 
 class CustomUserManager(BaseUserManager):
     """ Менеджер для модели CustomUser """
-    def create_user(self, email, password=None, **extra_fields):
+    def create_user(self, email, password=None):
         if not email:
             raise ValueError('Почта обязательна, она может пригодиться для восстановления пароля')
         email = self.normalize_email(email)
-        user = self.model(email=email, **extra_fields)
+        user = self.model(email=email)
         user.set_password(password)
         user.save(using=self._db)
         return user

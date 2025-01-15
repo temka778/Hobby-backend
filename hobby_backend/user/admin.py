@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import CustomUser
+from .models import CustomUser, ForbiddenUsername
 
 
 class CustomUserAdmin(UserAdmin):
@@ -9,3 +9,4 @@ class CustomUserAdmin(UserAdmin):
         'pk', 'email', 'username', 'first_name', 'middle_name', 'last_name', 'birth_date', 'avatar', 'is_staff')
 
 admin.site.register(CustomUser, CustomUserAdmin)
+admin.site.register(ForbiddenUsername)
