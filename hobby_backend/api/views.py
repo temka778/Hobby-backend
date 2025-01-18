@@ -71,7 +71,15 @@ class UserDetailView(APIView):
         serializer = UserSerializer(user, data=request.data, partial=False)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            # Генерация новых токенов
+            refresh = RefreshToken.for_user(user)
+            access = refresh.access_token
+    
+            return Response({
+                "user": serializer.data,
+                "refresh": str(refresh),
+                "access": str(access),
+            }, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def patch(self, request, lookup):
