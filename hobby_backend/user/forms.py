@@ -7,6 +7,10 @@ class CustomUserChangeForm(forms.ModelForm):
         fields = "__all__"
 
     def clean_username(self):
-        """Преобразуем None в пустую строку"""
-        username = self.cleaned_data.get("username", "")
-        return username or ""
+        username = self.cleaned_data.get("username", None)
+        if username:  # Проверяем, что username не None
+            username = username.strip()
+            if CustomUser.objects.filter(username=username).exclude(pk=self.instance.pk).exists():
+                raise forms.ValidationError("Пользователь с таким username уже существует.")
+        return username  # Возвращаем None, если пусто
+
