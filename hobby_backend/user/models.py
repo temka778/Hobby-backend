@@ -10,7 +10,7 @@ class CustomUser(AbstractUser):
     avatar = models.ImageField('Ава', upload_to='avatars/', blank=True, null=True)
     middle_name = models.CharField('Отчество', max_length=150, blank=True, null=True)
     birth_date = models.DateField('Дата рождения', blank=True, null=True)
-    username = models.CharField(max_length=150, blank=True, null=True)
+    username = models.CharField('Никнейм', max_length=150, blank=True, null=True)
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 

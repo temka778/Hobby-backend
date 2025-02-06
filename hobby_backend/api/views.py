@@ -38,6 +38,7 @@ class UserDetailView(APIView):
     Универсальный эндпоинт для получения и редактирования данных пользователя.
     - GET: Просмотр страницы пользователя (по ID или username).
     - PUT/PATCH: Редактирование профиля авторизованным пользователем.
+    - DELETE: Удаление аккаунта авторизованным пользователем.
     """
     def get_permissions(self):
         """Получение прав доступа"""
@@ -93,6 +94,20 @@ class UserDetailView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def delete(self, request, lookup):
+        """Удаление аккаунта пользователя"""
+        user = self.get_object(lookup)
+        if user != request.user:
+            return Response({"error": "Удалять можно только свой аккаунт"}, status=status.HTTP_403_FORBIDDEN)
+
+        # Чистим все токены пользователя (чтобы сразу разлогинить его везде)
+        RefreshToken.for_user(user).blacklist()
+
+        # Удаляем пользователя
+        user.delete()
+
+        return Response({"message": "Аккаунт успешно удалён"}, status=status.HTTP_204_NO_CONTENT)
 
 
 
