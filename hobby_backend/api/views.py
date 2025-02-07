@@ -63,26 +63,6 @@ class UserDetailView(APIView):
         serializer = UserSerializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def put(self, request, lookup):
-        """Редактирование данных пользователя"""
-        user = self.get_object(lookup)
-        if user != request.user:
-            return Response({"error": "Редактировать можно только свой профиль"}, status=status.HTTP_403_FORBIDDEN)
-
-        serializer = UserSerializer(user, data=request.data, partial=False)
-        if serializer.is_valid():
-            serializer.save()
-            # Генерация новых токенов
-            refresh = RefreshToken.for_user(user)
-            access = refresh.access_token
-    
-            return Response({
-                "user": serializer.data,
-                "refresh": str(refresh),
-                "access": str(access),
-            }, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
     def patch(self, request, lookup):
         """Частичное редактирование данных пользователя"""
         user = self.get_object(lookup)
