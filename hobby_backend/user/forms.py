@@ -1,16 +1,18 @@
-from django import forms
+from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from .models import CustomUser
 
-class CustomUserChangeForm(forms.ModelForm):
+class CustomUserCreationForm(UserCreationForm):
+    """Форма создания пользователя в админке"""
     class Meta:
         model = CustomUser
-        fields = "__all__"
+        fields = ("email",)  # Только email, username не нужен
 
     def clean_username(self):
-        username = self.cleaned_data.get("username", None)
-        if username:  # Проверяем, что username не None
-            username = username.strip()
-            if CustomUser.objects.filter(username=username).exclude(pk=self.instance.pk).exists():
-                raise forms.ValidationError("Пользователь с таким username уже существует.")
-        return username  # Возвращаем None, если пусто
+        return None  # Возвращаем None, чтобы не сохранялось в БД
 
+
+class CustomUserChangeForm(UserChangeForm):
+    """Форма изменения пользователя в админке"""
+    class Meta:
+        model = CustomUser
+        fields = "__all__"  # Оставляем возможность редактировать все поля
