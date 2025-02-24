@@ -25,11 +25,12 @@ class SignupView(APIView):
         serializer = SignupSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
-            return Response({"message": "Пользователь успешно создан"}, status=status.HTTP_201_CREATED)
+            return Response({"message": "Регистрация прошла успешно", "id": user.id}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
+    """Кастомный эндпоинт для получения токена с полями приветствия username и id"""
     serializer_class = CustomTokenObtainPairSerializer
 
 
@@ -81,10 +82,8 @@ class UserDetailView(APIView):
         if user != request.user:
             return Response({"error": "Удалять можно только свой аккаунт"}, status=status.HTTP_403_FORBIDDEN)
 
-        # Чистим все токены пользователя (чтобы сразу разлогинить его везде)
         RefreshToken.for_user(user).blacklist()
 
-        # Удаляем пользователя
         user.delete()
 
         return Response({"message": "Аккаунт успешно удалён"}, status=status.HTTP_204_NO_CONTENT)
@@ -104,5 +103,5 @@ class LogoutView(APIView):
             token.blacklist()
             return Response({"message": "Ты успешно вышел из учётки"}, status=status.HTTP_200_OK)
         except Exception as e:
-            print(f"Ошибка выхода: {e}")  # Логирование ошибки
+            print(f"Ошибка выхода: {e}")
             return Response({"error": "Invalid token"}, status=status.HTTP_400_BAD_REQUEST)

@@ -18,12 +18,15 @@ class SignupSerializer(serializers.ModelSerializer):
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
-    """ Сериализатор для получения токена """
-    @classmethod
-    def get_token(cls, user):
-        token = super().get_token(user)
-        token['username'] = user.username
-        return token
+    """Кастомный сериализатор для логина, добавляющий сообщение, username и id пользователя"""
+
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        data["message"] = "Вход выполнен успешно"
+        data["username"] = self.user.username
+        data["id"] = self.user.id
+
+        return data
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -40,16 +43,12 @@ class UserSerializer(serializers.ModelSerializer):
     def validate_username(self, value):
         """Проверка имени пользователя: уникальность, запрещённые слова"""
         if value:
-            value = value.strip()  # Убираем пробелы в начале и конце
-            
-            # Проверяем запрещённые слова
+            value = value.strip()
             forbidden_words = ForbiddenUsername.objects.values_list("word", flat=True)
             if any(word in value.lower() for word in forbidden_words):
                 raise serializers.ValidationError(f"Имя пользователя '{value}' содержит запрещённое слово.")
-            
-            # Проверяем уникальность (исключаем текущего пользователя из проверки)
             user_id = self.instance.id if self.instance else None
             if User.objects.filter(username=value).exclude(id=user_id).exists():
                 raise serializers.ValidationError("Этот username уже занят.")
 
-        return value or None  # Возвращаем None, если поле пустое
+        return value or None
